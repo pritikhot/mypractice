@@ -1,0 +1,109 @@
+pipeline
+{
+    agent any
+    stages
+    {
+        stage('continuousdownload')
+        {
+            steps
+            {
+			     script
+				{
+				    try
+					   {
+                        git 'https://github.com/intelliqittrainings/maven.git'
+                       }
+					  
+					 catch(Exception e1)
+					   {
+						mail bcc: '', body: 'cicd not working', cc: '', from: '', replyTo: '', subject: 'delivery fail', to: 'khotpriti11@gmail.com'
+					    exit(1)
+					   }
+				}
+			}			
+        }
+         stage('continuousbuild')
+        {
+            steps
+			{
+			     script
+				{
+				    try
+					   {
+                        sh 'mvn package'
+                       }
+					  
+					 catch(Exception e2)
+					   {
+						mail bcc: '', body: 'cicd not working', cc: '', from: '', replyTo: '', subject: 'delivery fail', to: 'khotpriti11@gmail.com'
+					    exit(2)
+					   }
+				}
+			}			
+            
+        }
+         stage('continuousdeployment')
+        {
+            steps
+			{
+			     script
+				{
+				     try
+					     {
+						    deploy adapters: [tomcat9(credentialsId: 'e0ee9c23-dd43-44b4-8665-1c9d224d2f1d', path: '', url: 'http://172.31.5.23:8080')], contextPath: 'test1', war: '**/*.war'
+					     }
+						  catch(Exception e3)
+					        {
+						      mail bcc: '', body: 'cicd not working', cc: '', from: '', replyTo: '', subject: 'delivery fail', to: 'khotpriti11@gmail.com'
+					          exit(3)
+					        }
+				}
+			}			
+            
+            
+        }
+        stage('continuoustesting')
+        {
+            steps
+			   {
+			     script
+				{
+					try
+						{
+						    git 'https://github.com/intelliqittrainings/FunctionalTesting.git' 
+							sh 'java -jar /home/ubuntu/.jenkins/workspace/declarativepipeline/testing.jar'
+						}
+							
+					catch(Exception e4)
+					    {
+						    mail bcc: '', body: 'cicd not working', cc: '', from: '', replyTo: '', subject: 'delivery fail', to: 'khotpriti11@gmail.com'
+					        exit(4)
+					    }
+				}
+			}			
+            
+            
+        }
+        stage('continuousdelivery')
+        {
+            steps
+				{
+					script
+						{
+							try
+								{
+									deploy adapters: [tomcat9(credentialsId: 'e0ee9c23-dd43-44b4-8665-1c9d224d2f1d', path: '', url: 'http://172.31.1.76:8080')], contextPath: 'prod1', war: '**/*.war'
+								}
+							catch(Exception e5)
+								{
+								 mail bcc: '', body: 'cicd not working', cc: '', from: '', replyTo: '', subject: 'delivery fail', to: 'khotpriti11@gmail.com'
+								 exit(5)
+								}
+						}
+				}		
+            
+        }
+    }
+}
+
+
